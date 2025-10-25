@@ -1,62 +1,216 @@
 <template>
-  <div>
-    <img
-      src="https://lz-clients1.oss-cn-beijing.aliyuncs.com/uploads/1761293323832_15x10m%20plan.png?Expires=1761293648&OSSAccessKeyId=TMP.3KniBHhT8zNZsvAyVyjHZytvr9LsreLsyRp8mE3MJZ2Qg15TjLnRseGhnBBuM8ySRtriXfyvcp3UsbdNrgntoDhBTPDU8a&Signature=2yIS8W2sGDajGh%2B6OvZUQvquETU%3D"
-      alt=""
-    />
-  </div>
-  <div>
-    <input
-      type="file"
-      @change="handleFile"
-    />
-    <p v-if="fileUrl">
-      上传成功：
-      <a
-        :href="fileUrl"
-        target="_blank"
-      >
-        {{ fileUrl }}
-      </a>
-    </p>
+  <div class="home-container">
+    <!--    客户信息整理系统-->
+    <header class="home-header">客户信息整理系统</header>
+    <main class="main-container">
+      <div class="status-bar">
+        <t-button
+          theme="primary"
+          @click="handleAddCustomer"
+        >
+          <template #icon><add-icon /></template>
+          新增客户
+        </t-button>
+        <div class="bar-list">
+          <div
+            v-for="(key, value) in statusMap"
+            :key="value"
+            class="status-item"
+          >
+            <span :style="{ backgroundColor: key.color }"></span>
+            {{ key.label }}
+          </div>
+        </div>
+      </div>
+      <div class="client-list-container">
+        <div
+          class="client"
+          v-for="client in clientList"
+          :key="client.id"
+          :style="{
+            background: `linear-gradient(to right, white, ${statusMap[client.state].color})`,
+          }"
+        >
+          <div class="national_flag">
+            <img
+              :src="getImageUrl(client.country_addrev)"
+              alt=""
+            />
+          </div>
+          <div class="client-content">
+            <span class="name">{{ client.client_name }}</span>
+            <span class="country">{{ client.country }}</span>
+            <span class="product_name">{{ client.product_name }}</span>
+            <span class="inquiry_date">
+              询盘日期：{{ dayjs(client.inquiry_date).format('YYYY-MM-DD') }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </main>
   </div>
 </template>
 
 <script setup>
-  import OSS from 'ali-oss'
-  import { ref } from 'vue'
-  import { createClient } from '@supabase/supabase-js'
+  // import OSS from 'ali-oss'
+  import { ref, onMounted } from 'vue'
+  import { useBaseInfoStore } from '@/stores/baseInfo.js'
+  import { storeToRefs } from 'pinia'
+  import supabase from '@/request/supabase.js'
+  import { statusMap } from '@/utils/index.js'
+  import dayjs from 'dayjs'
+  import { AddIcon } from 'tdesign-icons-vue-next'
+  import { useRouter } from 'vue-router'
 
-  // Create a single supabase client for interacting with your database
-  const supabase = createClient(
-    'https://pqbneojpksizuigsglce.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxYm5lb2pwa3NpenVpZ3NnbGNlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEyODcxMDgsImV4cCI6MjA3Njg2MzEwOH0.lr8G6dn2nTQy4pPQKb7HgVw8Imms71QjDEAPJjB-rjg'
-  )
-  const a = async () => {
-    const res = await supabase.from('clients').select()
-    console.log(res)
-  }
-  a()
-  const fileUrl = ref('')
-  // 初始化 OSS 客户端
-  const client = new OSS({
-    region: 'oss-cn-beijing', // 替换你的 Region
-    accessKeyId: process.env.VUE_APP_ALIBABA_ACCESS_KEY_ID, // 替换你的 AccessKeyId
-    accessKeySecret: process.env.VUE_APP_ALIBABA_ACCESS_KEY_SECRET, // 替换你的 AccessKeySecret
-    bucket: 'lz-clients1', // 替换你的 Bucket 名称
-  })
-  const handleFile = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
+  const router = useRouter()
+  const clientList = ref([])
+  let client = null
+  const baseInfo = useBaseInfoStore()
+  const { ali_ak_info } = storeToRefs(baseInfo)
 
-    try {
-      // 生成文件名（避免重复）
-      const fileName = `uploads/${Date.now()}_${file.name}`
-      const result = await client.put(fileName, file)
-      console.log('上传成功：', result.url)
-      fileUrl.value = result.url
-    } catch (err) {
-      console.error('上传失败：', err)
+  const getClientList = async () => {
+    const res = await supabase.getClientList()
+    console.log(res.data)
+    if (res.status === 200) {
+      clientList.value = res.data
     }
   }
+
+  onMounted(async () => {
+    await baseInfo.getAliAkInfo()
+    await getClientList()
+    console.log('加载完成:', ali_ak_info.value)
+
+    // 初始化 OSS 客户端
+    // client = new OSS({
+    //   region: 'oss-cn-beijing',
+    //   accessKeyId: ali_ak_info.value.id,
+    //   accessKeySecret: ali_ak_info.value.key,
+    //   bucket: 'lz-clients1',
+    // })
+  })
+
+  const getImageUrl = (name) => {
+    return new URL(`../assets/image/country/${name}.png`, import.meta.url).href
+  }
+
+  const handleAddCustomer = () => {
+    router.push('/add')
+  }
+  // const handleFile = async (e) => {
+  //   const file = e.target.files[0]
+  //   if (!file) return
+  //
+  //   try {
+  //     const fileName = `uploads/${Date.now()}_${file.name}`
+  //     const result = await client.put(fileName, file)
+  //     console.log('上传成功：', result.url)
+  //     fileUrl.value = result.url
+  //   } catch (err) {
+  //     console.error('上传失败：', err)
+  //   }
+  // }
 </script>
+<style scoped lang="scss">
+  .home-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    .home-header {
+      width: 100%;
+      height: 60px;
+      text-align: center;
+      line-height: 60px;
+      font-size: 22px;
+      border-bottom: 1px solid #3899cc;
+      background-color: #0ba6df;
+      color: #fff;
+    }
+    .main-container {
+      flex: 1;
+      overflow: auto;
+      .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 40px;
+        padding: 0 12px;
+        border-bottom: 1px solid #ebebeb;
+        .bar-list {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+        }
+        .status-item {
+          height: 30px;
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          gap: 3px;
+          color: #333;
+          position: relative;
+          font-size: 14px;
+          span {
+            width: 100%;
+            height: 3px;
+            border-radius: 2px;
+            position: absolute;
+            bottom: 0;
+          }
+        }
+      }
+      .client-list-container {
+        display: flex;
+        flex-direction: column;
+        .client {
+          display: flex;
+          align-items: center;
+          height: 60px;
+          padding: 0 12px;
+          border-bottom: 1px solid #ebebeb;
+          position: relative;
+          .state-box {
+            width: 200px;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+          }
+          .national_flag {
+            margin-right: 10px;
+            img {
+              //width: 100px;
+              height: 45px;
+              object-fit: contain;
+            }
+          }
+          .client-content {
+            height: 30px;
+            gap: 10px;
+            .name {
+              font-size: 20px;
+              font-weight: bold;
+            }
+            .country {
+              font-size: 14px;
+              font-weight: bold;
+              margin-left: 10px;
+            }
+            .product_name {
+              font-size: 14px;
+              font-weight: bold;
+              margin-left: 10px;
+            }
+            .inquiry_date {
+              font-size: 14px;
+              color: #a7a5a5;
+              margin-left: 8px;
+            }
+          }
+        }
+      }
+    }
+  }
+</style>
