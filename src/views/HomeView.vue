@@ -41,8 +41,8 @@
   // 初始化 OSS 客户端
   const client = new OSS({
     region: 'oss-cn-beijing', // 替换你的 Region
-    accessKeyId: 'LTAI5t7eicUEYX1ucrDk8KjM', // 替换你的 AccessKeyId
-    accessKeySecret: 'd9EJXqc5WbjWAblObTVgMt3S1MsJZ1', // 替换你的 AccessKeySecret
+    accessKeyId: process.env.VUE_APP_ALIBABA_ACCESS_KEY_ID, // 替换你的 AccessKeyId
+    accessKeySecret: process.env.VUE_APP_ALIBABA_ACCESS_KEY_SECRET, // 替换你的 AccessKeySecret
     bucket: 'lz-clients1', // 替换你的 Bucket 名称
   })
   const handleFile = async (e) => {
