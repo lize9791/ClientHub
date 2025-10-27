@@ -1,22 +1,19 @@
 /** @type {import("prettier").Config} */
 module.exports = {
-  // 基础格式化规则
-  printWidth: 100,            // 每行最大长度
-  tabWidth: 2,                // 缩进空格数
-  useTabs: false,             // 使用空格缩进
-  semi: false,                // 语句末尾不加分号
-  singleQuote: true,          // 使用单引号
-  quoteProps: 'as-needed',    // 对象属性仅在必要时加引号
-  trailingComma: 'es5',       // ES5中有效的地方保留尾逗号（对象、数组等）
-  bracketSpacing: true,       // 对象字面量中保留空格 { foo: bar }
-  arrowParens: 'always',      // 箭头函数参数总是加括号
-  endOfLine: 'lf',            // 换行符为 LF（避免跨平台问题）
+  // 基础格式规则
+  printWidth: 100, // 超过 100 字符时换行（包括模板标签属性）
+  tabWidth: 2,
+  useTabs: false,
+  semi: false,
+  singleQuote: true,
+  trailingComma: 'es5',
+  bracketSpacing: true,
+  arrowParens: 'always',
+  endOfLine: 'lf',
 
-  // Vue 特定配置
-  vueIndentScriptAndStyle: true,  // script 与 style 标签内容缩进
-  singleAttributePerLine: true,   // 多属性标签时每个属性独占一行
-
-  // 文件相关
-  htmlWhitespaceSensitivity: 'ignore', // 忽略 HTML 空白敏感性
-  embeddedLanguageFormatting: 'auto',  // 自动格式化嵌入的代码块（如 vue 中的 JS/HTML/CSS）
+  // Vue 专用规则
+  vueIndentScriptAndStyle: true, // script 和 style 标签内缩进
+  htmlWhitespaceSensitivity: 'ignore', // 忽略空格敏感性，避免不必要的换行
+  singleAttributePerLine: false, // 允许多个属性在同一行（不会强制换行）
+  bracketSameLine: true, // 使 `>` 保持在最后一个属性的同一行
 }

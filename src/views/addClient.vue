@@ -1,7 +1,7 @@
 <template>
   <div class="add-client-container">
     <header class="add-client-header">
-      <span class="back">
+      <span class="back" @click="backList">
         <ChevronLeftIcon size="26" />
         返回列表
       </span>
@@ -13,166 +13,120 @@
         <t-form
           ref="form"
           :data="formData"
+          :rules="rules"
           reset-type="initial"
           :disabled="formDisabled"
-          layout="inline"
           colon
           @reset="onReset"
-          @submit="onSubmit"
-        >
-          <t-form-item
-            label="姓名"
-            name="name"
-          >
-            <t-input
-              v-model="formData.name"
-              placeholder="请输入客户姓名"
-            ></t-input>
+          @submit="onSubmit">
+          <t-form-item label="姓名" name="client_name">
+            <t-input v-model="formData.client_name" placeholder="请输入客户姓名"></t-input>
           </t-form-item>
-          <t-form-item
-            label="询盘日期"
-            name="date"
-          >
-            <t-date-picker
-              v-model="formData.date"
-              mode="date"
-              clearable
-            />
-          </t-form-item>
-          <t-form-item
-            label="国家"
-            name="country"
-          >
+          <div class="inline-box">
+            <t-form-item label="询盘日期" name="inquiry_date">
+              <t-date-picker
+                v-model="formData.inquiry_date"
+                mode="date"
+                enable-time-picker
+                allow-input
+                clearable />
+            </t-form-item>
+            <t-form-item label="客户语言" name="language">
+              <t-select
+                v-model="formData.language"
+                :options="LANGUAGE_OPTIONS"
+                clearable
+                filterable
+                placeholder="请选择客户语言"></t-select>
+            </t-form-item>
+          </div>
+
+          <t-form-item label="国家" name="country">
             <t-select
               v-model="formData.country"
-              :options="country_OPTIONS"
+              :options="COUNTRY_OPTIONS"
               clearable
-            ></t-select>
+              filterable
+              placeholder="请选择客户国家"></t-select>
           </t-form-item>
 
-          <t-form-item
-            label="状态"
-            name="state"
-          >
-            <t-tree-select
-              v-model="formData.state"
-              :data="ADDRESS_OPTIONS"
-              clearable
-            />
+          <t-form-item label="客户公司" name="client_company">
+            <t-input v-model="formData.client_company" placeholder="请输入客户公司名称"></t-input>
           </t-form-item>
 
-          <t-form-item
-            label="询盘来源"
-            name="origin"
-          >
-            <t-cascader
-              v-model="formData.origin"
-              :options="ADDRESS_OPTIONS"
-              clearable
-            />
+          <t-form-item label="状态" name="state">
+            <t-select v-model="formData.state" :options="STATUS_OPTIONS" clearable />
           </t-form-item>
 
-          <t-form-item
-            label="备注"
-            name="remark"
-          >
-            <t-textarea
-              v-model="formData.remark"
-              placeholder="客户备注"
-              clearable
-            />
+          <t-form-item v-if="[3, 4].includes(Number(formData.state))" label="单号" name="order_num">
+            <t-input v-model="formData.order_num" placeholder="请输入单号"></t-input>
           </t-form-item>
 
-          <t-form-item
-            label="是否转交"
-            name="transfer"
-          >
-            <t-switch
-              v-model="formData.transfer"
-              :label="['是', '否']"
-            ></t-switch>
+          <t-form-item label="询盘来源" name="origin">
+            <t-select v-model="formData.origin" :options="ORIGIN_OPTIONS" clearable />
           </t-form-item>
 
-          <t-form-item
-            label="邮箱"
-            name="email"
-          >
-            <t-input
-              v-model="formData.email"
-              placeholder="请输入客户邮箱"
-            ></t-input>
+          <t-form-item label="是否转交" name="is_transfer">
+            <t-switch v-model="formData.is_transfer" :label="['是', '否']"></t-switch>
           </t-form-item>
 
-          <t-form-item
-            label="电话"
-            name="phone"
-          >
-            <t-input
-              v-model="formData.phone"
-              placeholder="请输入客户电话"
-            ></t-input>
+          <t-form-item label="邮箱" name="client_email">
+            <t-input v-model="formData.client_email" placeholder="请输入客户邮箱"></t-input>
           </t-form-item>
-          <t-form-item
-            label="跟进方式"
-            name="follow_up_method"
-          >
+
+          <t-form-item label="电话" name="client_phone">
+            <t-input v-model="formData.client_phone" placeholder="请输入客户电话"></t-input>
+          </t-form-item>
+
+          <t-form-item label="跟进方式" name="follow_up_method">
             <t-checkbox-group
               v-model="formData.follow_up_method"
-              :options="follow_up_methodOptions"
-            />
+              :options="FOLLOW_UP_METHOD_OPTIONS" />
           </t-form-item>
 
-          <t-form-item
-            label="利润(美金)"
-            name="profit"
-          >
-            <t-input-number
-              v-model="formData.profit"
-              theme="normal"
-              placeholder="请输入利润"
-            />
+          <t-form-item label="跟进日期" name="follow_up_date">
+            <t-date-picker
+              v-model="formData.follow_up_date"
+              mode="date"
+              enable-time-picker
+              allow-input
+              clearable />
           </t-form-item>
 
-          <t-form-item
-            label="头像"
-            name="avatar"
-          >
+          <t-form-item label="产品名称" name="product_name">
+            <t-input v-model="formData.product_name" placeholder="请输入产品名称" />
+          </t-form-item>
+
+          <t-form-item label="产品规格" name="product_specifications">
+            <t-textarea
+              v-model="formData.product_specifications"
+              placeholder="请输入产品规格"
+              clearable />
+          </t-form-item>
+
+          <t-form-item label="利润(美金)" name="profit">
+            <t-input-number v-model="formData.profit" theme="normal" placeholder="请输入利润" />
+          </t-form-item>
+
+          <t-form-item label="备注" name="remark">
+            <t-textarea v-model="formData.remark" placeholder="客户备注" clearable />
+          </t-form-item>
+
+          <t-form-item label="相关文件" name="file">
             <t-upload
-              v-model="formData.avatar"
-              action="https://service-bv448zsw-1257786608.gz.apigw.tencentcs.com/api/upload-demo"
+              v-model="formData.file"
+              action="/"
               theme="image"
               tips="请选择单张图片文件上传"
-              accept="image/*"
-            ></t-upload>
+              accept="image/*"></t-upload>
           </t-form-item>
 
-          <t-form-item>
-            <t-space size="small">
-              <t-button
-                theme="primary"
-                type="submit"
-              >
-                提交
-              </t-button>
-              <t-button
-                theme="default"
-                variant="base"
-                type="reset"
-              >
+          <t-form-item class="btn-box">
+            <t-space size="small" class="form-btn-space">
+              <t-button theme="default" variant="base" type="reset" style="width: 100px">
                 重置
               </t-button>
-              <t-button
-                theme="primary"
-                variant="base"
-                :disabled="false"
-                @click="
-                  () => {
-                    formDisabled = !formDisabled
-                  }
-                "
-              >
-                {{ formDisabled ? '关闭' : '开启' }}禁用表单
-              </t-button>
+              <t-button theme="primary" type="submit" style="width: 100%">提交</t-button>
             </t-space>
           </t-form-item>
         </t-form>
@@ -185,51 +139,135 @@
   import { ChevronLeftIcon } from 'tdesign-icons-vue-next'
   import { ref, reactive } from 'vue'
   import { MessagePlugin } from 'tdesign-vue-next'
+  import { useRouter } from 'vue-router'
+  import CountryList from '@/utils/countryList.json'
+  import { statusMap, originMap, followUpMethodMap, languageMap } from '@/utils/index.js'
+  import supabase from '@/request/supabase.js'
+  import dayjs from 'dayjs'
 
+  const router = useRouter()
   const formDisabled = ref(false)
   const formData = reactive({
-    name: '',
-    transfer: true,
-    email: '',
-    phone: '',
+    client_name: '',
+    is_transfer: true,
+    client_email: '',
+    client_phone: '',
     follow_up_method: [],
     country: '',
     remark: '',
-    state: undefined,
-    origin: undefined,
-    profit: undefined,
-    date: '',
-    avatar: [{ url: 'https://tdesign.gtimg.com/site/avatar.jpg' }],
+    state: '',
+    origin: '',
+    profit: '',
+    inquiry_date: '',
+    follow_up_date: '',
+    file: [],
+    order_num: '',
+    language: '',
+    client_company: '',
+    product_name: '',
+    product_specifications: '',
   })
+  const rules = {
+    client_name: [{ required: true, message: '请输入客户姓名', trigger: 'blur' }],
+    is_transfer: [{ required: true, message: '请选择是否为转接客户', trigger: 'change' }],
+    client_email: [
+      { required: false, message: '请输入邮箱地址', trigger: 'change' },
+      {
+        validator: (val) => {
+          if (!val) return true // 如果为空，不校验格式
+          return /^[\w.-]+@[\w.-]+\.\w+$/.test(val)
+        },
+        message: '邮箱格式不正确',
+        trigger: 'blur',
+      },
+    ],
+    client_phone: [
+      { required: false, message: '请输入联系电话', trigger: 'change' },
+      {
+        validator: (val) => {
+          if (!val) return true // 如果为空，不校验格式
+          return /^\+?[1-9]\d{0,3}[-.\s]?\d{4,14}(?:[-.\s]\d{1,13})?$/.test(val)
+        },
+        message: '请输入正确的国际电话号码（示例：+86 13800138000）',
+        trigger: 'blur',
+      },
+    ],
+    follow_up_method: [{ required: true, message: '请选择跟进方式', trigger: 'change' }],
+    country: [{ required: true, message: '请输入或选择国家', trigger: 'blur' }],
+    remark: [{ required: false }],
+    state: [{ required: true, message: '请选择客户状态', trigger: 'change' }],
+    origin: [{ required: true, message: '请选择客户来源', trigger: 'change' }],
+    profit: [
+      {
+        validator: (val) => val === undefined || val === '' || /^\d+(\.\d+)?$/.test(val),
+        message: '利润必须为数字',
+        trigger: 'blur',
+      },
+    ],
+    inquiry_date: [{ required: true, message: '请选择日期', trigger: 'change' }],
+    file: [{ required: false }],
+    order_num: [{ required: true, message: '请输入单号', trigger: 'blur' }],
+    language: [{ required: true, message: '请输入客户语言', trigger: 'blur' }],
+    client_company: [{ required: false, message: '请输入客户公司名称', trigger: 'blur' }],
+    product_name: [{ required: true, message: '请输入产品名称', trigger: 'blur' }],
+    product_specifications: [{ required: true, message: '请输入产品规格', trigger: 'blur' }],
+  }
+  const COUNTRY_OPTIONS = Object.entries(CountryList)
+    .sort(([, nameA], [, nameB]) => nameA.localeCompare(nameB, 'zh-CN'))
+    .map(([key, name]) => ({ label: name, value: key }))
 
-  const follow_up_methodOptions = [
-    { label: '语文', value: '1' },
-    { label: '数学', value: '2' },
-    { label: '英语', value: '3' },
-  ]
+  const STATUS_OPTIONS = []
+  for (const key in statusMap) {
+    STATUS_OPTIONS.push({ label: statusMap[key].label, value: key })
+  }
+  const ORIGIN_OPTIONS = []
+  for (const key in originMap) {
+    ORIGIN_OPTIONS.push({ label: originMap[key], value: key })
+  }
 
-  const country_OPTIONS = [
-    { label: '学院 A', value: 1 },
-    { label: '学院 B', value: 2 },
-    { label: '学院 C', value: 3 },
-  ]
+  const FOLLOW_UP_METHOD_OPTIONS = []
+  for (const key in followUpMethodMap) {
+    FOLLOW_UP_METHOD_OPTIONS.push({ label: followUpMethodMap[key], value: key })
+  }
 
-  const ADDRESS_OPTIONS = [
-    { label: '江苏', value: 1, children: [{ label: '南京市', value: 300 }] },
-    { label: '上海', value: 2, children: [{ label: '徐汇区', value: 400 }] },
-    { label: '四川', value: 3, children: [{ label: '成都市', value: 500 }] },
-  ]
+  const LANGUAGE_OPTIONS = []
+  for (const key in languageMap) {
+    LANGUAGE_OPTIONS.push({ label: languageMap[key], value: key })
+  }
+
+  const backList = () => {
+    router.back()
+  }
 
   const onReset = () => {
     MessagePlugin.success('重置成功')
   }
 
-  const onSubmit = ({ validateResult, firstError }) => {
+  const onSubmit = async ({ validateResult, firstError }) => {
     if (validateResult === true) {
-      MessagePlugin.success('提交成功')
+      const bjTime = dayjs().format('YYYY-MM-DD HH:mm:ss+08')
+      const tempData = {
+        created_at: bjTime,
+        follow_up_method: formData.follow_up_method.join(','),
+        country: CountryList[formData.country],
+        country_addrev: formData.country,
+        inquiry_date: formData.inquiry_date + '+08',
+        follow_up_date: formData.follow_up_date + '+08',
+      }
+      const submitData = {
+        ...formData,
+        ...tempData,
+      }
+      delete submitData.file
+      formDisabled.value = true
+      const res = await supabase.insertClient(submitData)
+      if (res.status === 201) {
+        formDisabled.value = false
+        await MessagePlugin.success('添加成功')
+      }
     } else {
       console.log('Errors: ', validateResult)
-      MessagePlugin.warning(firstError)
+      await MessagePlugin.warning(firstError)
     }
   }
 </script>
@@ -252,6 +290,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
       }
       .line {
         height: 20px;
@@ -265,6 +304,30 @@
       overflow: auto;
       .client-info-box {
         padding: 12px;
+        .t-form {
+          width: 50%;
+          .inline-box {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            .t-form__item {
+              margin-bottom: var(--td-comp-margin-xxl);
+            }
+          }
+          .btn-box {
+            position: sticky;
+            bottom: 10px;
+          }
+          .form-btn-space {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            :deep(.t-space-item:first-child) {
+              flex: 1;
+            }
+          }
+        }
       }
     }
   }

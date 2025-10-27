@@ -12,9 +12,42 @@ export const statusMap = {
   11: { color: '#17a2b8', label: '低优先级' },
 }
 
-const origin = {
+export const originMap = {
   1: '阿里询盘',
+  2: 'WhatsApp',
+  3: 'FaceBook',
+  4: 'Twitter',
+  5: 'Instagram',
+  6: '邮箱',
 }
-const follow_up_method = {
-  1: '阿里',
+export const followUpMethodMap = {
+  1: '阿里卖家',
+  2: 'WhatsApp',
+  3: 'FaceBook',
+  4: 'Twitter',
+  5: 'Instagram',
+  6: '邮箱',
+}
+
+export const languageMap = {
+  english: '英语',
+  chinese: '汉语',
+  spanish: '西班牙语',
+  arabic: '阿拉伯语',
+  french: '法语',
+  german: '德语',
+  russian: '俄语',
+  japanese: '日语',
+  portuguese: '葡萄牙语',
+  hindi: '印地语',
+  bengali: '孟加拉语',
+  korean: '韩语',
+  italian: '意大利语',
+  turkish: '土耳其语',
+  thai: '泰语',
+  vietnamese: '越南语',
+  polish: '波兰语',
+  urdu: '乌尔都语',
+  indonesian: '印尼语',
+  dutch: '荷兰语',
 }

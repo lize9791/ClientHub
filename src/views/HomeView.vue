@@ -4,19 +4,12 @@
     <header class="home-header">客户信息整理系统</header>
     <main class="main-container">
       <div class="status-bar">
-        <t-button
-          theme="primary"
-          @click="handleAddCustomer"
-        >
+        <t-button theme="primary" @click="handleAddCustomer">
           <template #icon><add-icon /></template>
           新增客户
         </t-button>
         <div class="bar-list">
-          <div
-            v-for="(key, value) in statusMap"
-            :key="value"
-            class="status-item"
-          >
+          <div v-for="(key, value) in statusMap" :key="value" class="status-item">
             <span :style="{ backgroundColor: key.color }"></span>
             {{ key.label }}
           </div>
@@ -29,13 +22,9 @@
           :key="client.id"
           :style="{
             background: `linear-gradient(to right, white, ${statusMap[client.state].color})`,
-          }"
-        >
+          }">
           <div class="national_flag">
-            <img
-              :src="getImageUrl(client.country_addrev)"
-              alt=""
-            />
+            <img :src="getImageUrl(client.country_addrev)" alt="" width="40" />
           </div>
           <div class="client-content">
             <span class="name">{{ client.client_name }}</span>
@@ -46,6 +35,8 @@
             </span>
           </div>
         </div>
+        <t-loading v-if="loading" />
+        <t-empty v-if="!loading && !clientList.length" />
       </div>
     </main>
   </div>
@@ -64,13 +55,15 @@
 
   const router = useRouter()
   const clientList = ref([])
+  const loading = ref(true)
   let client = null
   const baseInfo = useBaseInfoStore()
   const { ali_ak_info } = storeToRefs(baseInfo)
 
   const getClientList = async () => {
+    loading.value = true
     const res = await supabase.getClientList()
-    console.log(res.data)
+    loading.value = false
     if (res.status === 200) {
       clientList.value = res.data
     }
@@ -91,7 +84,7 @@
   })
 
   const getImageUrl = (name) => {
-    return new URL(`../assets/image/country/${name}.png`, import.meta.url).href
+    return `https://flagcdn.com/w40/${name.toLowerCase()}.png`
   }
 
   const handleAddCustomer = () => {
@@ -130,6 +123,8 @@
     .main-container {
       flex: 1;
       overflow: auto;
+      display: flex;
+      flex-direction: column;
       .status-bar {
         display: flex;
         align-items: center;
@@ -161,6 +156,7 @@
         }
       }
       .client-list-container {
+        flex: 1;
         display: flex;
         flex-direction: column;
         .client {
@@ -181,8 +177,6 @@
           .national_flag {
             margin-right: 10px;
             img {
-              //width: 100px;
-              height: 45px;
               object-fit: contain;
             }
           }
@@ -209,6 +203,16 @@
               margin-left: 8px;
             }
           }
+        }
+        .t-loading {
+          flex: 1;
+        }
+        .t-empty {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
         }
       }
     }

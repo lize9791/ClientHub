@@ -9,7 +9,12 @@ const getClientList = () => {
   return supabaseClient.from('clients').select()
 }
 
+const insertClient = (client) => {
+  return supabaseClient.from('clients').insert([client])
+}
+
 export default {
   supabaseClient,
   getClientList,
+  insertClient,
 }
