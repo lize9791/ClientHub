@@ -8,11 +8,19 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+      meta: {
+        keepAlive: true,
+      },
     },
     {
       path: '/add',
       name: 'addClient',
       component: () => import('../views/addClient.vue'),
+    },
+    {
+      path: '/detail',
+      name: 'clientDetail',
+      component: () => import('../views/clientDetail.vue'),
     },
   ],
 })

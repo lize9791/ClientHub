@@ -20,6 +20,7 @@ export const originMap = {
   5: 'Instagram',
   6: '邮箱',
 }
+
 export const followUpMethodMap = {
   1: '阿里卖家',
   2: 'WhatsApp',
@@ -27,6 +28,15 @@ export const followUpMethodMap = {
   4: 'Twitter',
   5: 'Instagram',
   6: '邮箱',
+}
+
+export const plateColorMap = {
+  1: '#2F85F1',
+  2: '#25D366',
+  3: '#0866FF',
+  4: '#000000',
+  5: '#FE2D65',
+  6: '#EA403D',
 }
 
 export const languageMap = {

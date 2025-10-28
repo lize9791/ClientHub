@@ -22,7 +22,8 @@
           :key="client.id"
           :style="{
             background: `linear-gradient(to right, white, ${statusMap[client.state].color})`,
-          }">
+          }"
+          @click="handleCustomerDetail(client)">
           <div class="national_flag">
             <img :src="getImageUrl(client.country_addrev)" alt="" width="40" />
           </div>
@@ -43,66 +44,44 @@
 </template>
 
 <script setup>
-  // import OSS from 'ali-oss'
   import { ref, onMounted } from 'vue'
-  import { useBaseInfoStore } from '@/stores/baseInfo.js'
-  import { storeToRefs } from 'pinia'
-  import supabase from '@/request/supabase.js'
   import { statusMap } from '@/utils/index.js'
   import dayjs from 'dayjs'
   import { AddIcon } from 'tdesign-icons-vue-next'
   import { useRouter } from 'vue-router'
+  import { useBaseInfoStore } from '@/stores/baseInfo.js'
+  import { storeToRefs } from 'pinia'
 
   const router = useRouter()
-  const clientList = ref([])
   const loading = ref(true)
-  let client = null
   const baseInfo = useBaseInfoStore()
-  const { ali_ak_info } = storeToRefs(baseInfo)
-
-  const getClientList = async () => {
-    loading.value = true
-    const res = await supabase.getClientList()
-    loading.value = false
-    if (res.status === 200) {
-      clientList.value = res.data
-    }
-  }
+  const { clientList } = storeToRefs(baseInfo)
 
   onMounted(async () => {
-    await baseInfo.getAliAkInfo()
-    await getClientList()
-    console.log('加载完成:', ali_ak_info.value)
-
-    // 初始化 OSS 客户端
-    // client = new OSS({
-    //   region: 'oss-cn-beijing',
-    //   accessKeyId: ali_ak_info.value.id,
-    //   accessKeySecret: ali_ak_info.value.key,
-    //   bucket: 'lz-clients1',
-    // })
+    loading.value = true
+    await baseInfo.getClientList()
+    console.log(clientList.value)
+    loading.value = false
   })
 
   const getImageUrl = (name) => {
     return `https://flagcdn.com/w40/${name.toLowerCase()}.png`
   }
 
+  // 跳转新增客户页面
   const handleAddCustomer = () => {
     router.push('/add')
   }
-  // const handleFile = async (e) => {
-  //   const file = e.target.files[0]
-  //   if (!file) return
-  //
-  //   try {
-  //     const fileName = `uploads/${Date.now()}_${file.name}`
-  //     const result = await client.put(fileName, file)
-  //     console.log('上传成功：', result.url)
-  //     fileUrl.value = result.url
-  //   } catch (err) {
-  //     console.error('上传失败：', err)
-  //   }
-  // }
+
+  // 跳转客户详情页面
+  const handleCustomerDetail = (client) => {
+    router.push({
+      path: '/detail',
+      query: {
+        id: client.id,
+      },
+    })
+  }
 </script>
 <style scoped lang="scss">
   .home-container {
@@ -166,6 +145,7 @@
           padding: 0 12px;
           border-bottom: 1px solid #ebebeb;
           position: relative;
+          cursor: pointer;
           .state-box {
             width: 200px;
             height: 100%;

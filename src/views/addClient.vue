@@ -1,151 +1,150 @@
 <template>
   <div class="add-client-container">
-    <header class="add-client-header">
-      <span class="back" @click="backList">
-        <ChevronLeftIcon size="26" />
-        返回列表
-      </span>
-      <span class="line"></span>
-      <span class="text">新增客户</span>
-    </header>
+    <ChildHeader title="新增客户" />
     <main class="main-container">
-      <div class="client-info-box">
-        <t-form
-          ref="form"
-          :data="formData"
-          :rules="rules"
-          reset-type="initial"
-          :disabled="formDisabled"
-          colon
-          @reset="onReset"
-          @submit="onSubmit">
-          <t-form-item label="姓名" name="client_name">
-            <t-input v-model="formData.client_name" placeholder="请输入客户姓名"></t-input>
-          </t-form-item>
-          <div class="inline-box">
-            <t-form-item label="询盘日期" name="inquiry_date">
+      <SimpleBar style="max-height: 100%">
+        <div class="client-info-box">
+          <t-form
+            ref="form"
+            :data="formData"
+            :rules="rules"
+            reset-type="initial"
+            :disabled="formDisabled"
+            colon
+            @reset="onReset"
+            @submit="onSubmit">
+            <t-form-item label="姓名" name="client_name">
+              <t-input v-model="formData.client_name" placeholder="请输入客户姓名"></t-input>
+            </t-form-item>
+            <div class="inline-box">
+              <t-form-item label="询盘日期" name="inquiry_date">
+                <t-date-picker
+                  v-model="formData.inquiry_date"
+                  mode="date"
+                  enable-time-picker
+                  allow-input
+                  clearable />
+              </t-form-item>
+              <t-form-item label="客户语言" name="language">
+                <t-select
+                  v-model="formData.language"
+                  :options="LANGUAGE_OPTIONS"
+                  clearable
+                  filterable
+                  placeholder="请选择客户语言"></t-select>
+              </t-form-item>
+            </div>
+
+            <t-form-item label="国家" name="country">
+              <t-select
+                v-model="formData.country"
+                :options="COUNTRY_OPTIONS"
+                clearable
+                filterable
+                placeholder="请选择客户国家"></t-select>
+            </t-form-item>
+
+            <t-form-item label="客户公司" name="client_company">
+              <t-input v-model="formData.client_company" placeholder="请输入客户公司名称"></t-input>
+            </t-form-item>
+
+            <t-form-item label="状态" name="state">
+              <t-select v-model="formData.state" :options="STATUS_OPTIONS" clearable />
+            </t-form-item>
+
+            <t-form-item
+              v-if="[3, 4].includes(Number(formData.state))"
+              label="单号"
+              name="order_num">
+              <t-input v-model="formData.order_num" placeholder="请输入单号"></t-input>
+            </t-form-item>
+
+            <t-form-item label="询盘来源" name="origin">
+              <t-select v-model="formData.origin" :options="ORIGIN_OPTIONS" clearable />
+            </t-form-item>
+
+            <t-form-item label="是否转交" name="is_transfer">
+              <t-switch v-model="formData.is_transfer" :label="['是', '否']"></t-switch>
+            </t-form-item>
+
+            <t-form-item label="邮箱" name="client_email">
+              <t-input v-model="formData.client_email" placeholder="请输入客户邮箱"></t-input>
+            </t-form-item>
+
+            <t-form-item label="电话" name="client_phone">
+              <t-input v-model="formData.client_phone" placeholder="请输入客户电话"></t-input>
+            </t-form-item>
+
+            <t-form-item label="跟进方式" name="follow_up_method">
+              <t-checkbox-group
+                v-model="formData.follow_up_method"
+                :options="FOLLOW_UP_METHOD_OPTIONS" />
+            </t-form-item>
+
+            <t-form-item label="跟进日期" name="follow_up_date">
               <t-date-picker
-                v-model="formData.inquiry_date"
+                v-model="formData.follow_up_date"
                 mode="date"
                 enable-time-picker
                 allow-input
                 clearable />
             </t-form-item>
-            <t-form-item label="客户语言" name="language">
-              <t-select
-                v-model="formData.language"
-                :options="LANGUAGE_OPTIONS"
-                clearable
-                filterable
-                placeholder="请选择客户语言"></t-select>
+
+            <t-form-item label="产品名称" name="product_name">
+              <t-input v-model="formData.product_name" placeholder="请输入产品名称" />
             </t-form-item>
-          </div>
 
-          <t-form-item label="国家" name="country">
-            <t-select
-              v-model="formData.country"
-              :options="COUNTRY_OPTIONS"
-              clearable
-              filterable
-              placeholder="请选择客户国家"></t-select>
-          </t-form-item>
+            <t-form-item label="产品规格" name="product_specifications">
+              <t-textarea
+                v-model="formData.product_specifications"
+                placeholder="请输入产品规格"
+                clearable />
+            </t-form-item>
 
-          <t-form-item label="客户公司" name="client_company">
-            <t-input v-model="formData.client_company" placeholder="请输入客户公司名称"></t-input>
-          </t-form-item>
+            <t-form-item label="利润(美金)" name="profit">
+              <t-input-number v-model="formData.profit" theme="normal" placeholder="请输入利润" />
+            </t-form-item>
 
-          <t-form-item label="状态" name="state">
-            <t-select v-model="formData.state" :options="STATUS_OPTIONS" clearable />
-          </t-form-item>
+            <t-form-item label="备注" name="remark">
+              <t-textarea v-model="formData.remark" placeholder="客户备注" clearable />
+            </t-form-item>
 
-          <t-form-item v-if="[3, 4].includes(Number(formData.state))" label="单号" name="order_num">
-            <t-input v-model="formData.order_num" placeholder="请输入单号"></t-input>
-          </t-form-item>
+            <t-form-item label="相关文件" name="file">
+              <t-upload
+                v-model="formData.file"
+                action="/"
+                theme="image"
+                tips="请选择单张图片文件上传"
+                accept="image/*"></t-upload>
+            </t-form-item>
 
-          <t-form-item label="询盘来源" name="origin">
-            <t-select v-model="formData.origin" :options="ORIGIN_OPTIONS" clearable />
-          </t-form-item>
-
-          <t-form-item label="是否转交" name="is_transfer">
-            <t-switch v-model="formData.is_transfer" :label="['是', '否']"></t-switch>
-          </t-form-item>
-
-          <t-form-item label="邮箱" name="client_email">
-            <t-input v-model="formData.client_email" placeholder="请输入客户邮箱"></t-input>
-          </t-form-item>
-
-          <t-form-item label="电话" name="client_phone">
-            <t-input v-model="formData.client_phone" placeholder="请输入客户电话"></t-input>
-          </t-form-item>
-
-          <t-form-item label="跟进方式" name="follow_up_method">
-            <t-checkbox-group
-              v-model="formData.follow_up_method"
-              :options="FOLLOW_UP_METHOD_OPTIONS" />
-          </t-form-item>
-
-          <t-form-item label="跟进日期" name="follow_up_date">
-            <t-date-picker
-              v-model="formData.follow_up_date"
-              mode="date"
-              enable-time-picker
-              allow-input
-              clearable />
-          </t-form-item>
-
-          <t-form-item label="产品名称" name="product_name">
-            <t-input v-model="formData.product_name" placeholder="请输入产品名称" />
-          </t-form-item>
-
-          <t-form-item label="产品规格" name="product_specifications">
-            <t-textarea
-              v-model="formData.product_specifications"
-              placeholder="请输入产品规格"
-              clearable />
-          </t-form-item>
-
-          <t-form-item label="利润(美金)" name="profit">
-            <t-input-number v-model="formData.profit" theme="normal" placeholder="请输入利润" />
-          </t-form-item>
-
-          <t-form-item label="备注" name="remark">
-            <t-textarea v-model="formData.remark" placeholder="客户备注" clearable />
-          </t-form-item>
-
-          <t-form-item label="相关文件" name="file">
-            <t-upload
-              v-model="formData.file"
-              action="/"
-              theme="image"
-              tips="请选择单张图片文件上传"
-              accept="image/*"></t-upload>
-          </t-form-item>
-
-          <t-form-item class="btn-box">
-            <t-space size="small" class="form-btn-space">
-              <t-button theme="default" variant="base" type="reset" style="width: 100px">
-                重置
-              </t-button>
-              <t-button theme="primary" type="submit" style="width: 100%">提交</t-button>
-            </t-space>
-          </t-form-item>
-        </t-form>
-      </div>
+            <t-form-item class="btn-box">
+              <t-space size="small" class="form-btn-space">
+                <t-button theme="default" variant="base" type="reset" style="width: 100px">
+                  重置
+                </t-button>
+                <t-button theme="primary" type="submit" style="width: 100%">提交</t-button>
+              </t-space>
+            </t-form-item>
+          </t-form>
+        </div>
+      </SimpleBar>
     </main>
   </div>
 </template>
 
 <script setup>
-  import { ChevronLeftIcon } from 'tdesign-icons-vue-next'
+  // import OSS from 'ali-oss'
+  // import { useBaseInfoStore } from '@/stores/baseInfo.js'
+  // import { storeToRefs } from 'pinia'
   import { ref, reactive } from 'vue'
   import { MessagePlugin } from 'tdesign-vue-next'
-  import { useRouter } from 'vue-router'
   import CountryList from '@/utils/countryList.json'
   import { statusMap, originMap, followUpMethodMap, languageMap } from '@/utils/index.js'
   import supabase from '@/request/supabase.js'
   import dayjs from 'dayjs'
+  import ChildHeader from '@/components/childHeader.vue'
 
-  const router = useRouter()
   const formDisabled = ref(false)
   const formData = reactive({
     client_name: '',
@@ -235,10 +234,6 @@
     LANGUAGE_OPTIONS.push({ label: languageMap[key], value: key })
   }
 
-  const backList = () => {
-    router.back()
-  }
-
   const onReset = () => {
     MessagePlugin.success('重置成功')
   }
@@ -270,6 +265,30 @@
       await MessagePlugin.warning(firstError)
     }
   }
+  // let client = null
+  // const baseInfo = useBaseInfoStore()
+  // const { ali_ak_info } = storeToRefs(baseInfo)
+  // await baseInfo.getAliAkInfo()
+  // 初始化 OSS 客户端
+  // client = new OSS({
+  //   region: 'oss-cn-beijing',
+  //   accessKeyId: ali_ak_info.value.id,
+  //   accessKeySecret: ali_ak_info.value.key,
+  //   bucket: 'lz-clients1',
+  // })
+  // const handleFile = async (e) => {
+  //   const file = e.target.files[0]
+  //   if (!file) return
+  //
+  //   try {
+  //     const fileName = `uploads/${Date.now()}_${file.name}`
+  //     const result = await client.put(fileName, file)
+  //     console.log('上传成功：', result.url)
+  //     fileUrl.value = result.url
+  //   } catch (err) {
+  //     console.error('上传失败：', err)
+  //   }
+  // }
 </script>
 
 <style lang="scss" scoped>
@@ -278,30 +297,9 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    .add-client-header {
-      width: 100%;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      border-bottom: 1px solid #3899cc;
-      padding: 0 12px;
-      box-sizing: border-box;
-      .back {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-      }
-      .line {
-        height: 20px;
-        width: 1px;
-        background-color: #ccc;
-        margin: 0 10px;
-      }
-    }
     .main-container {
       flex: 1;
-      overflow: auto;
+      overflow: hidden;
       .client-info-box {
         padding: 12px;
         .t-form {
