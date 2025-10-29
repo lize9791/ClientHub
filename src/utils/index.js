@@ -61,3 +61,36 @@ export const languageMap = {
   indonesian: '印尼语',
   dutch: '荷兰语',
 }
+
+export function numberToChinese(num) {
+  const units = ['', '十', '百', '千', '万', '十', '百', '千', '亿']
+  const chars = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
+
+  if (typeof num !== 'number' || isNaN(num)) return ''
+
+  let str = num.toString()
+  let result = ''
+  let zero = false
+
+  for (let i = 0; i < str.length; i++) {
+    const digit = parseInt(str[str.length - 1 - i])
+    const unit = units[i]
+
+    if (digit === 0) {
+      if (!zero && result !== '') {
+        result = chars[0] + result
+      }
+      zero = true
+    } else {
+      result = chars[digit] + unit + result
+      zero = false
+    }
+  }
+
+  // 处理特殊情况
+  result = result.replace(/^一十/, '十') // “一十”→“十”
+  result = result.replace(/零+$/, '') // 去掉末尾多余的零
+  result = result.replace(/零+/g, '零') // 连续零压缩
+
+  return result
+}

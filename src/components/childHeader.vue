@@ -30,6 +30,7 @@
     padding: 0 12px;
     box-sizing: border-box;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    z-index: 9;
     .text {
       flex: 1;
       font-size: 30px;
