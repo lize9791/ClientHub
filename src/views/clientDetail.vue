@@ -117,8 +117,6 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import ChildHeader from '@/components/childHeader.vue'
-  import { useBaseInfoStore } from '@/stores/baseInfo.js'
-  import { storeToRefs } from 'pinia'
   import { useRoute } from 'vue-router'
   import {
     plateColorMap,
@@ -130,11 +128,10 @@
   import Icon from '@/components/icon.vue'
   import CountryList from '@/utils/countryList.json'
   import dayjs from 'dayjs'
+  import supabase from '@/request/supabase.js'
 
   const route = useRoute()
   const clientID = Number(route.query.id)
-  const baseInfo = useBaseInfoStore()
-  const { clientList } = storeToRefs(baseInfo)
   const clientDetail = ref({})
   const nameInitials = ref()
   const orderList = ref([])
@@ -142,15 +139,24 @@
   const nationalFlag = ref('')
 
   onMounted(() => {
-    clientDetail.value = clientList.value.filter((item) => item.id === clientID)[0]
-    getBaseInfo()
+    getClientInfo()
   })
 
-  const getBaseInfo = () => {
-    const arr = clientDetail.value.client_name?.split(' ')
-    orderList.value = clientDetail.value.order_num?.split(',')
-    orderNum.value = orderList.value[0]
-    nationalFlag.value = `https://flagcdn.com/w40/${clientDetail.value.country_addrev.toLowerCase()}.png`
+  const getClientInfo = async () => {
+    const res = await supabase.getClientInfo(clientID)
+    if (res.status === 200) {
+      clientDetail.value = res.data
+      getBaseInfo(res.data)
+    }
+  }
+
+  const getBaseInfo = (value) => {
+    const arr = value.client_name?.split(' ')
+    if (value.order_num) {
+      orderList.value = value.order_num?.split(',')
+      orderNum.value = orderList.value.length ? orderList.value[0] : ''
+    }
+    nationalFlag.value = `https://flagcdn.com/w40/${value.country_addrev.toLowerCase()}.png`
     if (arr.length === 0) return
     nameInitials.value = arr[0][0].toUpperCase() + arr[1][0].toUpperCase()
   }
