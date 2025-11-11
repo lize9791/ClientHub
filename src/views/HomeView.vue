@@ -4,18 +4,56 @@
     <div class="top-action-bar">
       <div class="title-section">
         <h1 class="page-title">客户管理</h1>
-        <p class="page-subtitle">共 {{ clientList.length }} 位客户</p>
+        <p class="page-subtitle">
+          {{ batchMode ? `已选择 ${selectedClients.length} 位客户` : `共 ${clientList.length} 位客户` }}
+        </p>
       </div>
       <div class="action-buttons">
-        <t-button variant="outline" class="action-btn" @click="handleImport">
+        <t-button
+          v-if="!batchMode"
+          variant="outline"
+          class="action-btn"
+          @click="handleImport">
           <template #icon><upload-icon /></template>
           导入客户
         </t-button>
-        <t-button variant="outline" class="action-btn" @click="handleDownloadTemplate">
+        <t-button
+          v-if="!batchMode"
+          variant="outline"
+          class="action-btn"
+          @click="handleDownloadTemplate">
           <template #icon><download-icon /></template>
           下载示例
         </t-button>
-        <t-button theme="primary" class="action-btn action-btn-primary" @click="handleAddCustomer">
+        <t-button
+          v-if="!batchMode"
+          variant="outline"
+          class="action-btn"
+          @click="toggleBatchMode">
+          <template #icon><check-circle-icon /></template>
+          批量管理
+        </t-button>
+        <t-button
+          v-if="batchMode"
+          variant="outline"
+          class="action-btn"
+          @click="toggleBatchMode">
+          <template #icon><close-icon /></template>
+          取消
+        </t-button>
+        <t-button
+          v-if="batchMode && selectedClients.length > 0"
+          theme="danger"
+          class="action-btn"
+          @click="handleBatchDelete">
+          <template #icon><delete-icon /></template>
+          删除选中 ({{ selectedClients.length }})
+        </t-button>
+        <t-button
+          v-if="!batchMode"
+          theme="primary"
+          class="action-btn action-btn-primary"
+          @click="handleAddCustomer">
           <template #icon><add-icon /></template>
           新增客户
         </t-button>
@@ -59,8 +97,12 @@
           <div
             v-for="client in filteredClientList"
             :key="client.id"
-            class="client-card"
-            @click="handleCustomerDetail(client)">
+            :class="['client-card', { 'batch-mode': batchMode, selected: isClientSelected(client.id) }]"
+            @click="handleCardClick(client)">
+            <!-- 删除按钮 -->
+            <div v-if="!batchMode" class="delete-btn" @click.stop="handleDeleteClient(client)">
+              <delete-icon />
+            </div>
             <div class="card-header">
               <div
                 class="status-indicator"
@@ -110,7 +152,14 @@
   import { ref, onMounted, onActivated, computed } from 'vue'
   import { statusMap } from '@/utils/index.js'
   import dayjs from 'dayjs'
-  import { AddIcon, UploadIcon, DownloadIcon } from 'tdesign-icons-vue-next'
+  import {
+    AddIcon,
+    UploadIcon,
+    DownloadIcon,
+    DeleteIcon,
+    CheckCircleIcon,
+    CloseIcon,
+  } from 'tdesign-icons-vue-next'
   import { useRouter } from 'vue-router'
   import { useBaseInfoStore } from '@/stores/baseInfo.js'
   import { storeToRefs } from 'pinia'
@@ -124,6 +173,9 @@
   const baseInfo = useBaseInfoStore()
   const { clientList, selectedStatus, filteredClientList } = storeToRefs(baseInfo)
   const fileInput = ref(null)
+  // 批量管理相关状态
+  const batchMode = ref(false)
+  const selectedClients = ref([])
 
   onMounted(() => {
     refreshHome()
@@ -190,6 +242,107 @@
       path: '/detail',
       query: {
         id: client.id,
+      },
+    })
+  }
+
+  // 处理卡片点击（批量模式下切换选择，普通模式下跳转详情）
+  const handleCardClick = (client) => {
+    if (batchMode.value) {
+      toggleClientSelection(client.id, !isClientSelected(client.id))
+    } else {
+      handleCustomerDetail(client)
+    }
+  }
+
+  // 切换批量管理模式
+  const toggleBatchMode = () => {
+    batchMode.value = !batchMode.value
+    if (!batchMode.value) {
+      selectedClients.value = []
+    }
+  }
+
+  // 检查客户是否被选中
+  const isClientSelected = (clientId) => {
+    return selectedClients.value.includes(clientId)
+  }
+
+  // 切换客户选择状态
+  const toggleClientSelection = (clientId, checked) => {
+    if (checked) {
+      if (!selectedClients.value.includes(clientId)) {
+        selectedClients.value.push(clientId)
+      }
+    } else {
+      selectedClients.value = selectedClients.value.filter((id) => id !== clientId)
+    }
+  }
+
+  // 删除单个客户
+  const handleDeleteClient = async (client) => {
+    const dialog = DialogPlugin.confirm({
+      header: '确认删除',
+      body: `确定要删除客户 "${client.client_name}" 吗？此操作将同时删除该客户的所有订单数据，且无法恢复！`,
+      confirmBtn: {
+        content: '确认删除',
+        theme: 'danger',
+      },
+      cancelBtn: '取消',
+      onConfirm: async () => {
+        try {
+          const { error } = await supabase.deleteClient(client.id)
+          if (error) throw error
+
+          MessagePlugin.success('客户删除成功！')
+          await refreshHome()
+          dialog.hide()
+        } catch (error) {
+          MessagePlugin.error(`删除失败：${error.message}`)
+          console.error('删除客户失败：', error)
+        }
+      },
+      onCancel: () => {
+        dialog.hide()
+      },
+    })
+  }
+
+  // 批量删除客户
+  const handleBatchDelete = async () => {
+    if (selectedClients.value.length === 0) {
+      MessagePlugin.warning('请先选择要删除的客户！')
+      return
+    }
+
+    const dialog = DialogPlugin.confirm({
+      header: '批量删除确认',
+      body: `确定要删除选中的 ${selectedClients.value.length} 位客户吗？此操作将同时删除这些客户的所有订单数据，且无法恢复！`,
+      confirmBtn: {
+        content: '确认删除',
+        theme: 'danger',
+      },
+      cancelBtn: '取消',
+      onConfirm: async () => {
+        const loadingInstance = LoadingPlugin({ text: '正在删除...' })
+        try {
+          const { error } = await supabase.deleteClients(selectedClients.value)
+          if (error) throw error
+
+          MessagePlugin.success(`成功删除 ${selectedClients.value.length} 位客户！`)
+          selectedClients.value = []
+          batchMode.value = false
+          await refreshHome()
+          dialog.hide()
+        } catch (error) {
+          MessagePlugin.error(`批量删除失败：${error.message}`)
+          console.error('批量删除客户失败：', error)
+        } finally {
+          loadingInstance.hide()
+        }
+      },
+      onCancel: () => {
+        dialog.hide()
       },
     })
   }
@@ -286,13 +439,18 @@
         return
       }
 
-      DialogPlugin.confirm({
+      const dialog = DialogPlugin.confirm({
         header: '导入预览',
         body: `检测到 ${jsonData.length} 条客户数据，是否确认导入？`,
         confirmBtn: '确认导入',
         cancelBtn: '取消',
         onConfirm: async () => {
+          // 用户点击确认后才开始导入
           await batchImportClients(jsonData)
+          dialog.hide() // 导入完成后关闭弹窗
+        },
+        onCancel: () => {
+          dialog.hide()
         },
       })
     } catch (error) {
@@ -519,6 +677,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-base);
+    border: 2px solid transparent;
 
     &::before {
       content: '';
@@ -539,6 +698,48 @@
       &::before {
         transform: scaleX(1);
       }
+
+      .delete-btn {
+        opacity: 1;
+      }
+    }
+
+    &.batch-mode {
+      cursor: pointer;
+    }
+
+    &.selected {
+      border-color: var(--color-primary);
+      background: rgba(91, 141, 239, 0.05);
+    }
+  }
+
+  /* 删除按钮 */
+  .delete-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+
+    &:hover {
+      background: var(--color-error);
+      color: #ffffff;
+      transform: scale(1.1);
+    }
+
+    :deep(.t-icon) {
+      font-size: 16px;
     }
   }
 

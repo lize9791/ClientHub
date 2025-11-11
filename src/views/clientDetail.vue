@@ -69,9 +69,58 @@
                     <span class="title-icon">📦</span>
                     <span>询盘及订单</span>
                     <t-tag theme="primary" variant="light" size="small">{{ orderList.length }} 个订单</t-tag>
+                    <span v-if="batchDeleteMode" class="batch-tag">
+                      已选择 {{ selectedOrders.length }} 个订单
+                    </span>
                   </div>
                   <div class="header-actions">
-                    <t-button size="small" variant="outline" @click="handleImportOrders">
+                    <t-button
+                      v-if="!batchDeleteMode && orderList.length > 0"
+                      size="small"
+                      variant="outline"
+                      @click="toggleBatchDeleteMode">
+                      <template #icon>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path
+                            d="M15.5 3.5a.5.5 0 0 1-.5.5h-3.5a.5.5 0 0 1 0-1H14V1.5a.5.5 0 0 1 1 0v2zm-13 12a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 1 1 0V14h1.5a.5.5 0 0 1 0 1h-2zm13 0h-2a.5.5 0 0 1 0-1H14v-1.5a.5.5 0 0 1 1 0v2a.5.5 0 0 1-.5.5zM1 3.5A.5.5 0 0 1 1.5 3h2a.5.5 0 0 1 0 1H2v1.5a.5.5 0 0 1-1 0v-2z" />
+                        </svg>
+                      </template>
+                      批量管理
+                    </t-button>
+                    <t-button
+                      v-if="batchDeleteMode"
+                      size="small"
+                      variant="outline"
+                      @click="toggleBatchDeleteMode">
+                      <template #icon>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path
+                            d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                        </svg>
+                      </template>
+                      取消
+                    </t-button>
+                    <t-button
+                      v-if="batchDeleteMode && selectedOrders.length > 0"
+                      size="small"
+                      theme="danger"
+                      @click="handleBatchDeleteOrders">
+                      <template #icon>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                          <path
+                            d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm3 .5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z" />
+                          <path
+                            fill-rule="evenodd"
+                            d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 01-1-1V2a1 1 0 011-1H6a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM4.118 4L4 4.059V13a1 1 0 001 1h6a1 1 0 001-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                        </svg>
+                      </template>
+                      删除选中 ({{ selectedOrders.length }})
+                    </t-button>
+                    <t-button
+                      v-if="!batchDeleteMode"
+                      size="small"
+                      variant="outline"
+                      @click="handleImportOrders">
                       <template #icon>
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                           <path
@@ -82,7 +131,11 @@
                       </template>
                       导入订单
                     </t-button>
-                    <t-button size="small" variant="outline" @click="handleAddOrder">
+                    <t-button
+                      v-if="!batchDeleteMode"
+                      size="small"
+                      variant="outline"
+                      @click="handleAddOrder">
                       <template #icon>
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                           <path
@@ -98,6 +151,28 @@
                 <div class="empty-icon">📦</div>
                 <div class="empty-text">暂无订单</div>
               </div>
+              <!-- 批量删除模式：订单列表视图 -->
+              <div v-else-if="batchDeleteMode" class="batch-order-list">
+                <div
+                  v-for="order in orderList"
+                  :key="order.id"
+                  :class="['batch-order-item', { selected: isOrderSelected(order.id) }]"
+                  @click="toggleOrderSelection(order.id)">
+                  <div class="order-info">
+                    <div class="order-main-info">
+                      <span class="order-number">{{ order.order_num }}</span>
+                      <span class="order-product">{{ order.product_name }}</span>
+                    </div>
+                    <div class="order-meta">
+                      <span v-if="order.order_inquiry_date" class="order-date">
+                        询盘：{{ order.order_inquiry_date }}
+                      </span>
+                      <span v-if="order.profit" class="order-profit">利润：${{ order.profit }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 正常模式：Tab标签页视图 -->
               <t-tabs v-else v-model="orderNum" class="order-tabs">
                 <t-tab-panel
                   v-for="(order, index) in orderList"
@@ -329,6 +404,10 @@
   // 订单导入弹窗
   const orderImportDialogVisible = ref(false)
 
+  // 批量删除相关状态
+  const batchDeleteMode = ref(false)
+  const selectedOrders = ref([])
+
   onMounted(() => {
     getClientInfo()
     getClientOrders() // 加载订单列表
@@ -409,12 +488,12 @@
       cancelBtn: '取消',
       theme: 'warning',
       onConfirm: async () => {
-        dialog.hide()
         try {
           await supabase.deleteOrder(orderId)
           MessagePlugin.success('订单删除成功')
           // 重新加载订单列表
           await getClientOrders()
+          dialog.hide()
         } catch (error) {
           MessagePlugin.error('删除订单失败：' + error.message)
         }
@@ -429,6 +508,64 @@
   const handleOrderSuccess = async () => {
     // 重新加载订单列表
     await getClientOrders()
+  }
+
+  // 切换批量删除模式
+  const toggleBatchDeleteMode = () => {
+    batchDeleteMode.value = !batchDeleteMode.value
+    if (!batchDeleteMode.value) {
+      selectedOrders.value = []
+    }
+  }
+
+  // 检查订单是否被选中
+  const isOrderSelected = (orderId) => {
+    return selectedOrders.value.includes(orderId)
+  }
+
+  // 切换订单选择状态
+  const toggleOrderSelection = (orderId) => {
+    const index = selectedOrders.value.indexOf(orderId)
+    if (index > -1) {
+      selectedOrders.value.splice(index, 1)
+    } else {
+      selectedOrders.value.push(orderId)
+    }
+  }
+
+  // 批量删除订单
+  const handleBatchDeleteOrders = async () => {
+    if (selectedOrders.value.length === 0) {
+      MessagePlugin.warning('请先选择要删除的订单！')
+      return
+    }
+
+    const dialog = DialogPlugin.confirm({
+      header: '批量删除确认',
+      body: `确定要删除选中的 ${selectedOrders.value.length} 个订单吗？此操作不可恢复！`,
+      confirmBtn: {
+        content: '确认删除',
+        theme: 'danger',
+      },
+      cancelBtn: '取消',
+      theme: 'warning',
+      onConfirm: async () => {
+        try {
+          await supabase.deleteOrders(selectedOrders.value)
+          MessagePlugin.success(`成功删除 ${selectedOrders.value.length} 个订单！`)
+          selectedOrders.value = []
+          batchDeleteMode.value = false
+          // 重新加载订单列表
+          await getClientOrders()
+          dialog.hide()
+        } catch (error) {
+          MessagePlugin.error('批量删除订单失败：' + error.message)
+        }
+      },
+      onCancel: () => {
+        dialog.hide()
+      },
+    })
   }
 </script>
 
@@ -628,6 +765,16 @@
     .title-icon {
       font-size: var(--font-size-2xl);
     }
+
+    .batch-tag {
+      margin-left: 8px;
+      padding: 2px 12px;
+      background: var(--color-warning-light);
+      color: var(--color-warning);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+    }
   }
 
   .card-header-with-actions {
@@ -659,6 +806,83 @@
     .empty-text {
       font-size: var(--font-size-lg);
       color: var(--color-text-secondary);
+    }
+  }
+
+  /* 批量删除模式：订单列表视图 */
+  .batch-order-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .batch-order-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    background: var(--color-bg-container);
+    border: 2px solid var(--color-border-light);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--color-primary);
+      background: rgba(91, 141, 239, 0.05);
+      transform: translateX(4px);
+    }
+
+    &.selected {
+      border-color: var(--color-primary);
+      background: rgba(91, 141, 239, 0.1);
+      box-shadow: 0 2px 8px rgba(91, 141, 239, 0.2);
+    }
+
+    .order-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .order-main-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+
+      .order-number {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+      }
+
+      .order-product {
+        font-size: 14px;
+        color: var(--color-text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    .order-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--color-text-tertiary);
+
+      .order-date,
+      .order-profit {
+        display: flex;
+        align-items: center;
+      }
+
+      .order-profit {
+        color: var(--color-success);
+        font-weight: 500;
+      }
     }
   }
 

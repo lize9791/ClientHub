@@ -22,6 +22,16 @@ const updateClient = (id, updatedData) => {
   return supabaseClient.from('clients').update(updatedData).eq('id', id).select().single()
 }
 
+// 删除单个客户
+const deleteClient = (id) => {
+  return supabaseClient.from('clients').delete().eq('id', id)
+}
+
+// 批量删除客户
+const deleteClients = (ids) => {
+  return supabaseClient.from('clients').delete().in('id', ids)
+}
+
 // ==================== 订单相关API ====================
 
 // 获取指定客户的所有订单
@@ -58,17 +68,25 @@ const createOrders = (ordersData) => {
   return supabaseClient.from('orders').insert(ordersData).select()
 }
 
+// 批量删除订单
+const deleteOrders = (orderIds) => {
+  return supabaseClient.from('orders').delete().in('id', orderIds)
+}
+
 export default {
   supabaseClient,
   getClientList,
   insertClient,
   getClientInfo,
   updateClient,
+  deleteClient,
+  deleteClients,
   // 订单相关
   getClientOrders,
   createOrder,
   getOrderById,
   updateOrder,
   deleteOrder,
+  deleteOrders,
   createOrders,
 }
