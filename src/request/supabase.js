@@ -17,9 +17,58 @@ const insertClient = (client) => {
 const getClientInfo = (id) => {
   return supabaseClient.from('clients').select('*').eq('id', id).single()
 }
+// 更新客户信息
+const updateClient = (id, updatedData) => {
+  return supabaseClient.from('clients').update(updatedData).eq('id', id).select().single()
+}
+
+// ==================== 订单相关API ====================
+
+// 获取指定客户的所有订单
+const getClientOrders = (clientId) => {
+  return supabaseClient
+    .from('orders')
+    .select('*')
+    .eq('client_id', clientId)
+    .order('created_at', { ascending: false })
+}
+
+// 创建新订单
+const createOrder = (orderData) => {
+  return supabaseClient.from('orders').insert([orderData]).select().single()
+}
+
+// 获取单个订单详情
+const getOrderById = (orderId) => {
+  return supabaseClient.from('orders').select('*').eq('id', orderId).single()
+}
+
+// 更新订单信息
+const updateOrder = (orderId, updatedData) => {
+  return supabaseClient.from('orders').update(updatedData).eq('id', orderId).select().single()
+}
+
+// 删除订单
+const deleteOrder = (orderId) => {
+  return supabaseClient.from('orders').delete().eq('id', orderId)
+}
+
+// 批量创建订单
+const createOrders = (ordersData) => {
+  return supabaseClient.from('orders').insert(ordersData).select()
+}
+
 export default {
   supabaseClient,
   getClientList,
   insertClient,
   getClientInfo,
+  updateClient,
+  // 订单相关
+  getClientOrders,
+  createOrder,
+  getOrderById,
+  updateOrder,
+  deleteOrder,
+  createOrders,
 }

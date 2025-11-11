@@ -1,3 +1,5 @@
+// 引入全局设计变量（必须在最前面）
+import './styles/design-tokens.css'
 import './assets/index.css'
 import 'simplebar-vue/dist/simplebar.min.css'
 

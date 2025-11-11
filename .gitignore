@@ -35,3 +35,5 @@ coverage
 # Vitest
 __screenshots__/
 
+.spec-workflow
+
